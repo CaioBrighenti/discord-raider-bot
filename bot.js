@@ -5,25 +5,61 @@ const auth = require('./auth.json');
 // init API vars
 const request = require('request');
 const panda_token = auth.panda_token;
+// init maps
+const role_map = new Map([
+	['ow', "Overwatch"],
+	['lol', "League of Legends"],
+	['csgo', 'Counter Strike: Global Offensive'],
+	['dota', 'Dota 2'],
+	['r6', "Rainbow 6"]
+])
+
 
 client.on('ready', () => {
-    console.log(`Logged in as ${client.user.tag}!`);
+	console.log(`Logged in as ${client.user.tag}!`);
+
 });
 
 client.on('message', msg => {
-  var args = msg.
-
+  
     // simple greeting
     if (msg.content === 'Colgate') {
       msg.reply('Our alma mater!!!');
     }
 
-    // pandas API test
-    if (msg.content == '!esports') {
-      printRunningTournaments(msg);
-    }
+    // trigger commands
+   if (msg.content[0] == '!'){
+     // tokenize into command and args
+     args = msg.content.substring(1,).split(" ");
+     cmd = args[0];
+
+     // currently running tournaments
+     if (cmd == 'esports') {
+       printRunningTournaments(msg);
+     }
+   }
+
   });
 
+
+client.on('raw', event => {
+	if (event['t'] == 'MESSAGE_REACTION_ADD' || event['t'] == 'MESSAGE_REACTION_REMOVE') {
+		if (event['d']['message_id'] == '609016117473574912') {
+			// grab reacting user
+			let server = client.guilds.get(event['d']['guild_id']);
+			let member = server.members.get(event['d']['user_id']);
+			// grab role
+			role_name = role_map.get(event['d']['emoji']['name']);
+			let test_role = server.roles.find(r => r.name === role_name);
+			// add or remove role
+			if (event['t'] == 'MESSAGE_REACTION_REMOVE'){
+				member.removeRole(test_role).catch(console.error);
+			} else {
+				member.addRole(test_role).catch(console.error);
+			}
+		}
+	}
+});
 
 function printRunningTournaments(msg){
   var url = 'https://api.pandascore.co/tournaments/running?token='
@@ -71,5 +107,5 @@ function printRunningTournaments(msg){
   });
 }
 
-client.login(auth.token);
+client.login(auth.dev_token);
 
