@@ -5,61 +5,97 @@ const auth = require('./auth.json');
 // init API vars
 const request = require('request');
 const panda_token = auth.panda_token;
-// init maps
+// init bot vars
+const prefix = "!";
 const role_map = new Map([
 	['ow', "Overwatch"],
 	['lol', "League of Legends"],
 	['csgo', 'Counter Strike: Global Offensive'],
 	['dota', 'Dota 2'],
-	['r6', "Rainbow 6"]
+  ['r6', "Rainbow 6"],
+  ['smash', "Super Smash Bros"],
+  ['fortnite', "Fortnite"],
+  ['apex', "Apex Legends"],
+  ['pubg', "PUBG"]
 ])
 
 
 client.on('ready', () => {
 	console.log(`Logged in as ${client.user.tag}!`);
 
+
 });
 
 client.on('message', msg => {
-  
-    // simple greeting
-    if (msg.content === 'Colgate') {
-      msg.reply('Our alma mater!!!');
-    }
+  // avoid responding to bots and ignore not commands
+  if (!msg.content.startsWith(prefix) || msg.author.bot) return;
+  // tokenize into command and args
+	const args = msg.content.slice(prefix.length).split(/ +/);
+  const cmd = args.shift().toLowerCase();
 
-    // trigger commands
-   if (msg.content[0] == '!'){
-     // tokenize into command and args
-     args = msg.content.substring(1,).split(" ");
-     cmd = args[0];
-
-     // currently running tournaments
-     if (cmd == 'esports') {
-       printRunningTournaments(msg);
-     }
-   }
+  if (cmd == 'esports') {
+    // send guide
+    if (args.length == 0) {printEsportsGuide(msg);}
+    // currently running tournaments
+    if (args[0] == 'r') {printRunningTournaments(msg);}
+    else if (args[0] == 'u') {msg.reply("This command isn't ready yet! Stay tuned.");}
+    else if (args[0] == 'd') {msg.reply("This command isn't ready yet! Stay tuned.");}
+  } else if (cmd == 'matches') {
+    // send guide
+    if (args.length == 0) {printEsportsGuide(msg);}
+    // currently running tournaments
+    if (args[0] == 'r') {msg.reply("This command isn't ready yet! Stay tuned.");}
+    else if (args[0] == 'u') {msg.reply("This command isn't ready yet! Stay tuned.");}
+    else if (args[0] == 'd') {msg.reply("This command isn't ready yet! Stay tuned.");}
+  }
 
   });
 
 
+  
 client.on('raw', event => {
+  // add roles for certain games
 	if (event['t'] == 'MESSAGE_REACTION_ADD' || event['t'] == 'MESSAGE_REACTION_REMOVE') {
 		if (event['d']['message_id'] == '609016117473574912') {
-			// grab reacting user
-			let server = client.guilds.get(event['d']['guild_id']);
-			let member = server.members.get(event['d']['user_id']);
-			// grab role
-			role_name = role_map.get(event['d']['emoji']['name']);
-			let test_role = server.roles.find(r => r.name === role_name);
-			// add or remove role
-			if (event['t'] == 'MESSAGE_REACTION_REMOVE'){
-				member.removeRole(test_role).catch(console.error);
-			} else {
-				member.addRole(test_role).catch(console.error);
-			}
+			addGameRole(event);
 		}
 	}
 });
+
+function addGameRole(event){
+  // grab reacting user
+  let server = client.guilds.get(event['d']['guild_id']);
+  let member = server.members.get(event['d']['user_id']);
+  // grab role
+  role_name = role_map.get(event['d']['emoji']['name']);
+  let test_role = server.roles.find(r => r.name === role_name);
+  // add or remove role
+  if (event['t'] == 'MESSAGE_REACTION_REMOVE'){
+    member.removeRole(test_role).catch(console.error);
+  } else {
+    member.addRole(test_role).catch(console.error);
+  }
+}
+
+function printEsportsGuide(msg){
+  const embed = new Discord.RichEmbed()
+    .setTitle("Esports Command Guide")
+    .setDescription("Commands with strikethrough are not yet implemented.")
+    //.setAuthor("The Raider", "https://i.imgur.com/9Uoud6Y.jpg")
+    .setColor(0x00AE86)
+    .setTimestamp()
+    .addBlankField()
+    .addField(":trophy: Tournaments","Commands for getting information on Esports tournaments")
+    .addField("Currently running", "`!esports r`", true)
+    .addField("Upcoming", "~~`!esports u`~~", true)
+    .addField("Details", "~~`!esports d <tournament id>`~~", true)
+    .addBlankField()
+    .addField(":video_game: Matches","Commands for getting information on Esports matches")
+    .addField("Currently running", "~~`!matches r`~~", true)
+    .addField("Upcoming", "~~`!matches u`~~", true)
+    .addField("Details", "~~`!matches d <match id>`~~", true);
+  msg.channel.send({embed});
+}
 
 function printRunningTournaments(msg){
   var url = 'https://api.pandascore.co/tournaments/running?token='
@@ -69,7 +105,7 @@ function printRunningTournaments(msg){
     // init rich embed
     const embed = new Discord.RichEmbed()
     embed.setTitle("_Current Esports Tournaments_")
-    embed.setAuthor("The Raider", "https://i.imgur.com/9Uoud6Y.jpg")
+    //embed.setAuthor("The Raider", "https://i.imgur.com/9Uoud6Y.jpg")
     embed.setColor(0x00AE86)
     embed.setFooter("Built using PandaScore.co live API", "https://pbs.twimg.com/profile_images/1039524362989252608/Uv4L4Gbe_400x400.jpg")
     //embed.setThumbnail("https://i.imgur.com/9Uoud6Y.jpg")
