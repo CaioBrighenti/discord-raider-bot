@@ -1,7 +1,7 @@
 // init discord vars
 const Discord = require('discord.js');
 const client = new Discord.Client();
-const auth = require('./auth.json');
+const auth = require('./config/auth.json');
 // init API vars
 const request = require('request');
 const panda_token = auth.panda_token;
@@ -51,8 +51,7 @@ client.on('message', msg => {
     else if (args[0] == 'u') {msg.reply("This command isn't ready yet! Stay tuned.");}
     else if (args[0] == 'd') {msg.reply("This command isn't ready yet! Stay tuned.");}
   } else if (cmd == "calendar") {
-    printAllCalendar(calendarId = "0553e4p5q901o41v1b42tlthag@group.calendar.google.com");
-    console.log(events);
+    printAllCalendar(calendarId = "0553e4p5q901o41v1b42tlthag@group.calendar.google.com",msg);
     msg.reply("Here's the match calendar!");
   }
 
@@ -69,7 +68,7 @@ client.on('raw', event => {
 	}
 });
 
-function printAllCalendar(calendarId){
+function printAllCalendar(calendarId,msg){
 	let eventsArray = [];
 	let params = {};
 	return cal.Events.list(calendarId, params, {})
@@ -86,11 +85,43 @@ function printAllCalendar(calendarId){
 				eventsArray.push(event);
 			}
 			console.log('List of all events on calendar');
-			console.log(eventsArray);
+      //console.log(eventsArray);
+      // RICH EMBED
+      calendarEmbedMsg(eventsArray,msg);
 			return eventsArray;
 		}).catch(err => {
 			console.log('Error: listAllEventsInCalendar', err.message);
 		});
+}
+function calendarEmbedMsg(eventsArray,msg){
+  console.log(eventsArray);
+  // loop through events
+  matches = "";
+  events = "";
+  for (let i = 0; i < eventsArray.length; i++) {
+    const element = eventsArray[i];
+    date = new Date(element['start']);
+    date_str = getDayMonth(date) ;
+    event_title = element['summary'];
+    if (event_title.includes("Match - ")) {
+      matches = matches + "**" + event_title.replace("Match - ","") + "** - " + element['start'] + "\n";
+    } else {
+      events = events + "**" + event_title + "** - " + element['start'] + "\n";
+    }
+  }
+  // avoid empty string
+  if (matches == ""){matches="None."}
+  if (events == ""){events="None."}
+  // init embed
+  const embed = new Discord.RichEmbed()
+    .setTitle("Colgate Esports Calendar")
+    .setDescription("Upcoming matches and events for Colgate Esports.")
+    //.setAuthor("The Raider", "https://i.imgur.com/9Uoud6Y.jpg")
+    .setColor(0x00AE86)
+    .setTimestamp()
+    .addField(":video_game: Upcoming Matches",matches)
+    .addField(":video_game: Upcoming Events",events)
+  msg.channel.send({embed});
 }
 
 function addGameRole(event){
