@@ -18,7 +18,10 @@ const role_map = new Map([
   ['apex', "Apex Legends"],
   ['pubg', "PUBG"]
 ])
-
+// load calendar API
+const CONFIG = require('./config/Settings');
+const CalendarAPI = require('node-google-calendar');
+let cal = new CalendarAPI(CONFIG);  
 
 client.on('ready', () => {
 	console.log(`Logged in as ${client.user.tag}!`);
@@ -47,6 +50,10 @@ client.on('message', msg => {
     if (args[0] == 'r') {msg.reply("This command isn't ready yet! Stay tuned.");}
     else if (args[0] == 'u') {msg.reply("This command isn't ready yet! Stay tuned.");}
     else if (args[0] == 'd') {msg.reply("This command isn't ready yet! Stay tuned.");}
+  } else if (cmd == "calendar") {
+    printAllCalendar(calendarId = "0553e4p5q901o41v1b42tlthag@group.calendar.google.com");
+    console.log(events);
+    msg.reply("Here's the match calendar!");
   }
 
   });
@@ -61,6 +68,30 @@ client.on('raw', event => {
 		}
 	}
 });
+
+function printAllCalendar(calendarId){
+	let eventsArray = [];
+	let params = {};
+	return cal.Events.list(calendarId, params, {})
+		.then(json => {
+			for (let i = 0; i < json.length; i++) {
+				let event = {
+					id: json[i].id,
+					summary: json[i].summary,
+					location: json[i].location,
+					start: json[i].start,
+					end: json[i].end,
+					status: json[i].status
+				};
+				eventsArray.push(event);
+			}
+			console.log('List of all events on calendar');
+			console.log(eventsArray);
+			return eventsArray;
+		}).catch(err => {
+			console.log('Error: listAllEventsInCalendar', err.message);
+		});
+}
 
 function addGameRole(event){
   // grab reacting user
@@ -84,7 +115,6 @@ function printEsportsGuide(msg){
     //.setAuthor("The Raider", "https://i.imgur.com/9Uoud6Y.jpg")
     .setColor(0x00AE86)
     .setTimestamp()
-    .addBlankField()
     .addField(":trophy: Tournaments","Commands for getting information on Esports tournaments")
     .addField("Currently running", "`!esports r`", true)
     .addField("Upcoming", "~~`!esports u`~~", true)
