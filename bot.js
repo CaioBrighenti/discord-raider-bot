@@ -33,14 +33,14 @@ client.on('message', msg => {
 	const args = msg.content.slice(prefix.length).split(/ +/);
   const cmd = args.shift().toLowerCase();
 
-  if (cmd == 'esports') {
+  if (cmd == 'esports' || cmd == 'e') {
     // send guide
     if (args.length == 0) {printEsportsGuide(msg);}
     // currently running tournaments
     if (args[0] == 'r') {printRunningTournaments(msg);}
     else if (args[0] == 'u') {msg.reply("This command isn't ready yet! Stay tuned.");}
-    else if (args[0] == 'd') {msg.reply("This command isn't ready yet! Stay tuned.");}
-  } else if (cmd == 'matches') {
+    else if (args[0] == 'd') {printTournamentDetails(msg,args);}
+  } else if (cmd == 'matches' || cmd == 'm') {
     // send guide
     if (args.length == 0) {printEsportsGuide(msg);}
     // currently running tournaments
@@ -115,15 +115,19 @@ function printRunningTournaments(msg){
     var [lol_events, ow_events, csgo_events, dota_events] = ["", "", "", ""];
     for (let index = 0; index < body.length; index++) {
       const element = body[index];
-      var event_name = element['league']['name'];
-      var game_name = element['videogame']['slug'];
-      var url = element['league']['url'];
+      start_date = new Date(element['begin_at']);
+      end_date = new Date(element['end_at']);
+      date_str = getDayMonth(start_date) + " to " + getDayMonth(end_date);
+      event_name = element['league']['name'];
+      game_name = element['videogame']['slug'];
+      console.log(game_name);
+      url = element['league']['url'];
       //var emote = client.emojis.find(emoji => emoji.name === element['videogame']['slug'].replace(/\W/g, ''));
       // add to appropriate string
-      if (game_name == "league-of-legends")  { lol_events = lol_events + event_name + ", " }
-      if (game_name == "ow")  { ow_events = ow_events + event_name + ", " }
-      if (game_name == "dota")  { dota_events = dota_events + event_name + ", " }
-      if (game_name == "csgo")  { csgo_events = csgo_events + event_name + ", " }
+      if (game_name == "league-of-legends")  { lol_events = lol_events + "**" + event_name + "** - " + date_str + " \n" }
+      if (game_name == "ow")  { ow_events = ow_events + event_name + " \n" }
+      if (game_name == "dota")  { dota_events = dota_events + event_name + " \n" }
+      if (game_name == "csgo")  { csgo_events = csgo_events + event_name + " \n" }
     }
     // find empty strings
     if (lol_events.length == 0) { lol_events = "None  "}
@@ -135,12 +139,41 @@ function printRunningTournaments(msg){
     const ow = client.emojis.find(emoji => emoji.name === "ow");
     const csgo = client.emojis.find(emoji => emoji.name === "csgo");
     const dota = client.emojis.find(emoji => emoji.name === "dota");
-    embed.addField(`${lol}` + " League of Legends", lol_events.substring(0, lol_events.length -2) + ".");
-    embed.addField(`${ow}` + " Overwatch", ow_events.substring(0, ow_events.length -2) + ".");
-    embed.addField(`${csgo}` + " Counter-Strike: Global Offensive", csgo_events.substring(0, csgo_events.length -2) + ".");
-    embed.addField(`${dota}` + " Dota 2", dota_events.substring(0, dota_events.length -2) + ".");
+    embed.addField(`${lol}` + " League of Legends", lol_events.substring(0, lol_events.length -2));
+    embed.addField(`${ow}` + " Overwatch", ow_events.substring(0, ow_events.length -2));
+    embed.addField(`${csgo}` + " Counter-Strike: Global Offensive", csgo_events.substring(0, csgo_events.length -2));
+    embed.addField(`${dota}` + " Dota 2", dota_events.substring(0, dota_events.length -2));
     msg.channel.send({embed});
   });
+}
+
+function printTournamentDetails(msg,args){
+  event_name = args.slice(1).join(" ");
+  slug = getSlug(event_name);
+  var url = 'https://api.pandascore.co/tournaments/' + slug + '?token='
+  console.log(url);
+  // request(url + panda_token, { json: true }, (err, res, body) => {
+  //   // handle error
+  //   if (err) { return console.log(err); }
+  //   console.log('body:', body);
+  // });
+}
+
+function getSlug(event_name){
+  // get list of tournaments
+  url = "https://api.pandascore.co/tournaments?token="
+    request(url + panda_token, { json: true }, (err, res, body) => {
+    // handle error
+    if (err) { return console.log(err); }
+    console.log('body:', body[1]['slug']);
+  });
+}
+
+function getDayMonth(date){
+  day = date.getDate().toString();
+  months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+  month = months[date.getMonth()];
+  return month + " " + day;
 }
 
 client.login(auth.dev_token);
