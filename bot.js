@@ -52,7 +52,7 @@ client.on('message', msg => {
     else if (args[0] == 'd') {msg.reply("This command isn't ready yet! Stay tuned.");}
   } else if (cmd == "calendar") {
     printAllCalendar(calendarId = "0553e4p5q901o41v1b42tlthag@group.calendar.google.com",msg);
-    msg.reply("Here's the match calendar!");
+    //msg.reply("Here's the match calendar!");
   }
 
   });
@@ -84,7 +84,7 @@ function printAllCalendar(calendarId,msg){
 				};
 				eventsArray.push(event);
 			}
-			console.log('List of all events on calendar');
+			//console.log('List of all events on calendar');
       //console.log(eventsArray);
       // RICH EMBED
       calendarEmbedMsg(eventsArray,msg);
@@ -94,33 +94,34 @@ function printAllCalendar(calendarId,msg){
 		});
 }
 function calendarEmbedMsg(eventsArray,msg){
-  console.log(eventsArray);
   // loop through events
   matches = "";
   events = "";
   for (let i = 0; i < eventsArray.length; i++) {
     const element = eventsArray[i];
-    date = new Date(element['start']);
-    date_str = getDayMonth(date) ;
+    date = new Date(element['start']['dateTime']);
+    date_str =  getDayMonthTime(date);
     event_title = element['summary'];
     if (event_title.includes("Match - ")) {
-      matches = matches + "**" + event_title.replace("Match - ","") + "** - " + element['start'] + "\n";
+      matches = matches + "**" + event_title.replace("Match - ","") + "** - " + date_str + "\n";
     } else {
-      events = events + "**" + event_title + "** - " + element['start'] + "\n";
+      events = events + "**" + event_title + "** - " + date_str + "\n";
     }
   }
   // avoid empty string
   if (matches == ""){matches="None."}
   if (events == ""){events="None."}
+  // find emojis
+  const raiderhey = client.emojis.find(emoji => emoji.name === "luigidab");
   // init embed
   const embed = new Discord.RichEmbed()
     .setTitle("Colgate Esports Calendar")
-    .setDescription("Upcoming matches and events for Colgate Esports.")
-    //.setAuthor("The Raider", "https://i.imgur.com/9Uoud6Y.jpg")
+    .setDescription("_Upcoming matches and events for Colgate Esports._")
     .setColor(0x00AE86)
     .setTimestamp()
-    .addField(":video_game: Upcoming Matches",matches)
-    .addField(":video_game: Upcoming Events",events)
+    .addField(":video_game: **Upcoming Matches**",matches)
+    .addField(`${raiderhey}` + " **Upcoming Events**",events)
+    .setFooter("The Raider", "https://i.imgur.com/9Uoud6Y.jpg")
   msg.channel.send({embed});
 }
 
@@ -147,7 +148,7 @@ function printEsportsGuide(msg){
     .setColor(0x00AE86)
     .setTimestamp()
     .addField(":trophy: Tournaments","Commands for getting information on Esports tournaments")
-    .addField("Currently running", "`!esports r`", true)
+    .addField("Currently running (WIP)", "`!esports r`", true)
     .addField("Upcoming", "~~`!esports u`~~", true)
     .addField("Details", "~~`!esports d <tournament id>`~~", true)
     .addBlankField()
@@ -186,9 +187,9 @@ function printRunningTournaments(msg){
       //var emote = client.emojis.find(emoji => emoji.name === element['videogame']['slug'].replace(/\W/g, ''));
       // add to appropriate string
       if (game_name == "league-of-legends")  { lol_events = lol_events + "**" + event_name + "** - " + date_str + " \n" }
-      if (game_name == "ow")  { ow_events = ow_events + event_name + " \n" }
-      if (game_name == "dota")  { dota_events = dota_events + event_name + " \n" }
-      if (game_name == "csgo")  { csgo_events = csgo_events + event_name + " \n" }
+      if (game_name == "ow")  { ow_events = ow_events + "**" + event_name + "** - " + date_str + " \n" }
+      if (game_name == "dota-2")  { dota_events = dota_events + "**" + event_name + "** - " + date_str + " \n" }
+      if (game_name == "cs-go")  { csgo_events = csgo_events + "**" + event_name + "** - " + date_str + " \n" }
     }
     // find empty strings
     if (lol_events.length == 0) { lol_events = "None  "}
@@ -201,7 +202,7 @@ function printRunningTournaments(msg){
     const csgo = client.emojis.find(emoji => emoji.name === "csgo");
     const dota = client.emojis.find(emoji => emoji.name === "dota");
     embed.addField(`${lol}` + " League of Legends", lol_events.substring(0, lol_events.length -2));
-    embed.addField(`${ow}` + " Overwatch", ow_events.substring(0, ow_events.length -2));
+    //embed.addField(`${ow}` + " Overwatch", ow_events.substring(0, ow_events.length -2));
     embed.addField(`${csgo}` + " Counter-Strike: Global Offensive", csgo_events.substring(0, csgo_events.length -2));
     embed.addField(`${dota}` + " Dota 2", dota_events.substring(0, dota_events.length -2));
     msg.channel.send({embed});
@@ -235,6 +236,17 @@ function getDayMonth(date){
   months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
   month = months[date.getMonth()];
   return month + " " + day;
+}
+
+function getDayMonthTime(date){
+  day = date.getDate().toString();
+  months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+  month = months[date.getMonth()];
+  hours = date.getHours();
+  minutes = date.getMinutes();
+  timestring = date.toLocaleString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true });
+  if (minutes == 0) {minutes = "00"} 
+  return month + " " + day + ", " + timestring;
 }
 
 client.login(auth.dev_token);
