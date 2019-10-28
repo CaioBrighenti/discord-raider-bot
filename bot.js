@@ -97,6 +97,10 @@ function calendarEmbedMsg(eventsArray,msg){
   // loop through events
   matches = "";
   events = "";
+  // emoji constants
+  const lol = client.emojis.find(emoji => emoji.name === "lol");
+  const csgo = client.emojis.find(emoji => emoji.name === "csgo");
+  const r6 = client.emojis.find(emoji => emoji.name === "r6");
   for (let i = 0; i < eventsArray.length; i++) {
     const element = eventsArray[i];
     if (element['status'] == "cancelled"){continue;} 
@@ -104,8 +108,12 @@ function calendarEmbedMsg(eventsArray,msg){
     date_str =  getDayMonthTime(date);
     event_title = element['summary'];
     if (event_title.includes("UNCONFIRMED")){continue;}
+    emote_str="";
+    if (event_title.includes("LoL")){emote_str = `${lol}` + " "}
+    if (event_title.includes("CS:GO")){emote_str = `${csgo}` + " "}
+    if (event_title.includes("Rainbow6")){emote_str = `${r6}` + " "}
     if (event_title.includes("Match - ")) {
-      matches = matches + "**" + event_title.replace("Match - ","") + "** - " + date_str + "\n";
+      matches = matches + emote_str + "**" + event_title.replace("Match - ","") + "** - " + date_str + "\n";
     } else {
       events = events + "**" + event_title + "** - " + date_str + "\n";
     }
@@ -122,6 +130,7 @@ function calendarEmbedMsg(eventsArray,msg){
     .setColor(0x00AE86)
     .setTimestamp()
     .addField(":video_game: **Upcoming Matches**",matches)
+    .addBlankField()
     .addField(`${raiderhey}` + " **Upcoming Events**",events)
     .setFooter("The Raider", "https://i.imgur.com/9Uoud6Y.jpg")
   msg.channel.send({embed});
