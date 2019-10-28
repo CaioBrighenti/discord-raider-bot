@@ -51,7 +51,7 @@ client.on('message', msg => {
     else if (args[0] == 'u') {msg.reply("This command isn't ready yet! Stay tuned.");}
     else if (args[0] == 'd') {msg.reply("This command isn't ready yet! Stay tuned.");}
   } else if (cmd == "calendar") {
-    printAllCalendar(calendarId = "0553e4p5q901o41v1b42tlthag@group.calendar.google.com",msg);
+    printAllCalendar(calendarId = "esportsclub@colgate.edu",msg);
     //msg.reply("Here's the match calendar!");
   }
 
@@ -99,9 +99,11 @@ function calendarEmbedMsg(eventsArray,msg){
   events = "";
   for (let i = 0; i < eventsArray.length; i++) {
     const element = eventsArray[i];
+    if (element['status'] == "cancelled"){continue;} 
     date = new Date(element['start']['dateTime']);
     date_str =  getDayMonthTime(date);
     event_title = element['summary'];
+    if (event_title.includes("UNCONFIRMED")){continue;}
     if (event_title.includes("Match - ")) {
       matches = matches + "**" + event_title.replace("Match - ","") + "** - " + date_str + "\n";
     } else {
@@ -112,7 +114,7 @@ function calendarEmbedMsg(eventsArray,msg){
   if (matches == ""){matches="None."}
   if (events == ""){events="None."}
   // find emojis
-  const raiderhey = client.emojis.find(emoji => emoji.name === "luigidab");
+  const raiderhey = client.emojis.find(emoji => emoji.name === "raiderhey");
   // init embed
   const embed = new Discord.RichEmbed()
     .setTitle("Colgate Esports Calendar")
@@ -249,5 +251,5 @@ function getDayMonthTime(date){
   return month + " " + day + ", " + timestring;
 }
 
-client.login(auth.dev_token);
+client.login(auth.token);
 
