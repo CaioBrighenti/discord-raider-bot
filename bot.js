@@ -130,7 +130,6 @@ function calendarEmbedMsg(eventsArray,msg){
     .setColor(0x00AE86)
     .setTimestamp()
     .addField(":video_game: **Upcoming Matches**",matches)
-    .addBlankField()
     .addField(`${raiderhey}` + " **Upcoming Events**",events)
     .setFooter("The Raider", "https://i.imgur.com/9Uoud6Y.jpg")
   msg.channel.send({embed});
